@@ -1,0 +1,78 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Missao;
+use App\Models\User;
+use Illuminate\Http\Request;
+
+class MissaoController extends Controller
+{
+    public function index()
+    {
+        $missoes = Missao::all();
+
+        // Para cada missão, busque os dados completos dos militares
+        foreach ($missoes as $missao) {
+            $militaresDetalhados = [];
+            foreach ($missao->militares as $militar) {
+                // Se for militar listado (tem id)
+                if (isset($militar['id'])) {
+                    $user = \App\Models\User::with(['postoGraduacao', 'omServico'])->find($militar['id']);
+                    if ($user) {
+                        $militaresDetalhados[] = [
+                            'nomeguerra' => $user->nomeguerra,
+                            'postograduacao' => $user->postoGraduacao->nome ?? '',
+                            'om_servico' => $user->omServico->nome ?? '',
+                        ];
+                    }
+                } else {
+                    // Militar não listado (preenchido manualmente)
+                    $militaresDetalhados[] = [
+                        'nomeguerra' => $militar['nome'] ?? 'Não informado',
+                        'postograduacao' => $militar['postograduacao_id'] ?? '',
+                        'om_servico' => $militar['om_servico_id'] ?? '',
+                    ];
+                }
+            }
+            // Adiciona os militares detalhados à missão
+            $missao->militares_detalhados = $militaresDetalhados;
+        }
+
+        return view('operacional.missoes.index', compact('missoes'));
+    }
+
+    public function create()
+    {
+        $militares = \App\Models\User::with(['postoGraduacao', 'omServico'])->get();
+        $municipios = \App\Models\Municipio::orderBy('nome')->get();
+        $postos = \App\Models\PostoGraduacoes::orderBy('nome')->get();
+        $oms = \App\Models\Oms::orderBy('nome')->get();
+        return view('operacional.missoes.criar', compact('militares', 'municipios', 'postos', 'oms'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'data_inicio' => 'required|date',
+            'data_fim' => 'required|date|after_or_equal:data_inicio',
+            'objetivos' => 'required|array',
+            'militares' => 'required|array|min:2|max:4',
+        ]);
+
+        // Decodifica os municípios selecionados
+        $objetivos = [];
+        foreach ($request->objetivos as $objetivo => $municipiosJson) {
+            $objetivos[$objetivo] = json_decode($municipiosJson, true) ?? [];
+        }
+
+        Missao::create([
+            'data_inicio' => $request->data_inicio,
+            'data_fim' => $request->data_fim,
+            'objetivos' => $objetivos,
+            'militares' => $request->militares,
+        ]);
+
+        return redirect()->route('operacional.missoes.index')->with('success', 'Missão criada com sucesso!');
+    }
+}
