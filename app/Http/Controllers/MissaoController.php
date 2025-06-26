@@ -14,6 +14,9 @@ class MissaoController extends Controller
 
         // Para cada missão, busque os dados completos dos militares
         foreach ($missoes as $missao) {
+            if (!is_array($missao->objetivos)) {
+                $missao->objetivos = $missao->objetivos ? json_decode($missao->objetivos, true) : [];
+            }
             $militaresDetalhados = [];
             foreach ($missao->militares as $militar) {
                 // Se for militar listado (tem id)
@@ -71,8 +74,67 @@ class MissaoController extends Controller
             'data_fim' => $request->data_fim,
             'objetivos' => $objetivos,
             'militares' => $request->militares,
+            'status' => null, // Garante que começa sem status
+            'observacao' => null,
         ]);
 
         return redirect()->route('operacional.missoes.index')->with('success', 'Missão criada com sucesso!');
+    }
+
+    public function edit(Missao $missao)
+    {
+        $militares = \App\Models\User::with(['postoGraduacao', 'omServico'])->get();
+        $municipios = \App\Models\Municipio::orderBy('nome')->get();
+        $postos = \App\Models\PostoGraduacoes::orderBy('nome')->get();
+        $oms = \App\Models\Oms::orderBy('nome')->get();
+        return view('operacional.missoes.editar', compact('missao', 'militares', 'municipios', 'postos', 'oms'));
+    }
+
+    public function update(Request $request, Missao $missao)
+    {
+        $request->validate([
+            'data_inicio' => 'required|date',
+            'data_fim' => 'required|date|after_or_equal:data_inicio',
+            'objetivos' => 'required|array',
+            'militares' => 'required|array|min:2|max:4',
+        ]);
+
+        $objetivos = [];
+        foreach ($request->objetivos as $objetivo => $municipiosJson) {
+            $objetivos[$objetivo] = json_decode($municipiosJson, true) ?? [];
+        }
+
+        $missao->update([
+            'data_inicio' => $request->data_inicio,
+            'data_fim' => $request->data_fim,
+            'objetivos' => $objetivos,
+            'militares' => $request->militares,
+        ]);
+
+        return redirect()->route('operacional.missoes.index')->with('success', 'Missão atualizada com sucesso!');
+    }
+
+    public function atualizarStatus(Request $request, Missao $missao)
+    {
+        $request->validate([
+            'status' => 'required|in:aprovado,reprovado,parcial',
+            'observacao' => 'nullable|string|max:1000'
+        ]);
+
+        $missao->status = $request->status;
+        $missao->observacao = $request->status === 'parcial' ? $request->observacao : null;
+        $missao->save();
+
+        return response()->json([
+            'success' => true,
+            'status' => $missao->status,
+            'observacao' => $missao->observacao,
+        ]);
+    }
+
+    public function destroy(Missao $missao)
+    {
+        $missao->delete();
+        return response()->json(['success' => true]);
     }
 }

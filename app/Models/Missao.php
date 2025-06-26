@@ -15,6 +15,8 @@ class Missao extends Model
         'data_fim',
         'objetivos',
         'militares',
+        'status',      // adicionado
+        'observacao',  // adicionado
     ];
 
     protected $casts = [

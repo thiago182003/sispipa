@@ -132,12 +132,16 @@ Route::middleware('auth')->group(function () {
         Route::get('missoes', [MissaoController::class, 'index'])->name('missoes.index');
         Route::get('missoes/criar', [MissaoController::class, 'create'])->name('missoes.create');
         Route::post('missoes', [MissaoController::class, 'store'])->name('missoes.store');
+        Route::post('missoes/{missao}/status', [MissaoController::class, 'atualizarStatus'])->name('operacional.missoes.status');
         Route::get('/municipios', [MunicipioController::class, 'index'])->name('municipios');
         Route::post('/municipios/importar', [MunicipioController::class, 'importar'])->name('municipios.importar');
         Route::get('/tipomissao', [TipoMissaoController::class, 'index'])->name('tipomissao');
         Route::get('/tipomissao/show', [TipoMissaoController::class, 'show'])->name('tipomissaoall');
         Route::get('/tipomissoes/getall', [TipoMissaoController::class, 'getAll'])->name('tipomissoes.getall');
         Route::post('/tipomissoes/store', [TipoMissaoController::class, 'store'])->name('tipomissoes.store');
+         Route::get('missoes/{missao}/editar', [MissaoController::class, 'edit'])->name('missoes.edit'); // NOVA ROTA
+        Route::put('missoes/{missao}', [MissaoController::class, 'update'])->name('missoes.update');   // NOVA ROTA
+        Route::delete('missoes/{missao}', [MissaoController::class, 'destroy'])->name('missoes.destroy'); // NOVA ROTA
         Route::post('/tipomissao/delete', [TipoMissaoController::class, 'destroy'])->name('tipomissoes.delete');
     });
 

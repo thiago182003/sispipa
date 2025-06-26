@@ -12,16 +12,16 @@
 @endpush
 
 @push('scripts')
-    <script script src={{ asset('/vendor/libs/moment/moment.js') }}></script>
-    <script script src={{ asset('/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}></script>
-    {{-- <script script src={{ asset('/vendor/libs/select2/select2.js') }}></script> --}}
-    {{-- <script script src={{ asset('/vendor/libs/@form-validation/popular.js') }}></script> --}}
-    {{-- <script script src={{ asset('/vendor/libs/@form-validation/bootstrap5.js') }}></script> --}}
-    {{-- <script script src={{ asset('/vendor/libs/@form-validation/auto-focus.js') }}></script> --}}
-    {{-- <script script src={{ asset('/vendor/libs/@form-validation/auto-focus.js') }}></script> --}}
-    <script script src={{ asset('/vendor/libs/cleave-zen/cleave-zen.js') }}></script>
-    <script script src={{ asset('/vendor/libs/sweetalert2/sweetalert2.js') }}></script>
-    <script script src={{ asset('/vendor/libs/dropzone/dropzone.js') }}></script>
+    <script src="{{ asset('/vendor/libs/moment/moment.js') }}"></script>
+    <script src="{{ asset('/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
+    {{-- <script src="{{ asset('/vendor/libs/select2/select2.js') }}"></script> --}}
+    {{-- <script src="{{ asset('/vendor/libs/@form-validation/popular.js') }}"></script> --}}
+    {{-- <script src="{{ asset('/vendor/libs/@form-validation/bootstrap5.js') }}"></script> --}}
+    {{-- <script src="{{ asset('/vendor/libs/@form-validation/auto-focus.js') }}"></script> --}}
+    {{-- <script src="{{ asset('/vendor/libs/@form-validation/auto-focus.js') }}"></script> --}}
+    <script src="{{ asset('/vendor/libs/cleave-zen/cleave-zen.js') }}"></script>
+    <script src="{{ asset('/vendor/libs/sweetalert2/sweetalert2.js') }}"></script>
+    <script src="{{ asset('/vendor/libs/dropzone/dropzone.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
     <script src="{{ asset('/js/pages/missao.js') }}"></script>
 @endpush
