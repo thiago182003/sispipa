@@ -19,8 +19,7 @@ class MissaoController extends Controller
             }
             $militaresDetalhados = [];
             foreach ($missao->militares as $militar) {
-                // Se for militar listado (tem id)
-                if (isset($militar['id'])) {
+                if (isset($militar['id']) && $militar['id']) {
                     $user = \App\Models\User::with(['postoGraduacao', 'omServico'])->find($militar['id']);
                     if ($user) {
                         $militaresDetalhados[] = [
@@ -31,10 +30,18 @@ class MissaoController extends Controller
                     }
                 } else {
                     // Militar não listado (preenchido manualmente)
+                    $posto = null;
+                    $om = null;
+                    if (!empty($militar['postograduacao_id'])) {
+                        $posto = \App\Models\PostoGraduacoes::find($militar['postograduacao_id']);
+                    }
+                    if (!empty($militar['om_servico_id'])) {
+                        $om = \App\Models\Oms::find($militar['om_servico_id']);
+                    }
                     $militaresDetalhados[] = [
                         'nomeguerra' => $militar['nome'] ?? 'Não informado',
-                        'postograduacao' => $militar['postograduacao_id'] ?? '',
-                        'om_servico' => $militar['om_servico_id'] ?? '',
+                        'postograduacao' => $posto ? $posto->nome : '',
+                        'om_servico' => $om ? $om->nome : '',
                     ];
                 }
             }

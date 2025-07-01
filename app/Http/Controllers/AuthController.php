@@ -50,39 +50,28 @@ class AuthController extends Controller
 
     public function updatePassword(Request $request)
     {
-
         $messages = [
-            'email.required' => 'We need to know your email address!',
-            'validation.confirmed' => 'teste',
-            'validation.regex' => 'teste 2'
+            'new_password.required' => 'A nova senha é obrigatória.',
+            'new_password.confirmed' => 'A confirmação da senha não confere.',
+            'new_password.min' => 'A senha deve ter pelo menos 6 caracteres.',
         ];
 
         $rules = [
-            'current_password' => 'required|string',
+            'id' => 'required|exists:users,id',
             'new_password' => [
                 'required',
                 'string',
                 'min:6',
-                'confirmed',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/'
             ]
         ];
 
-        $request->validate($rules,$messages);
+        $request->validate($rules, $messages);
 
-        $user = $request->user();
-
-        // Verifica se a senha atual confere
-        if (!Hash::check($request->current_password, $user->password)) {
-            throw ValidationException::withMessages([
-                'current_password' => 'A senha atual está incorreta.'
-            ]);
-        }
-
+        $user = \App\Models\User::findOrFail($request->id);
         $user->password = $request->new_password;
         $user->save();
 
-        return redirect()->route('dashboard')->with('success', 'Senha alterada com sucesso!');
+        return response()->json(['success' => true]);
     }
 
     

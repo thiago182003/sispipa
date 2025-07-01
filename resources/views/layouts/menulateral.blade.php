@@ -209,8 +209,91 @@
                 </li>
             </ul>
         </li>
-@elseif (auth()->user()->level == 3) {{-- Operacional --}}
-{{-- Operacional --}}
+@elseif (auth()->user()->level == 3) {{-- Financeiro --}}
+    {{-- Financeiro --}}
+    <li class="menu-item {{ request()->routeIs("financeiro.*") ? 'open active' : ''}}">
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+            <i class="menu-icon icon-base bx bx-money"></i>
+            <div>Financeiro</div>
+        </a>
+        <ul class="menu-sub">
+            <li class="menu-item {{ request()->routeIs('financeiro.index') ? 'active' : '' }}">
+                <a href="{{route('financeiro.index')}}" class="menu-link" >
+                    <div>Situação financeira</div>
+                </a>
+            </li>
+        </ul>
+    </li>
+    {{-- Importações --}}
+    <li class="menu-item {{ request()->routeIs("importacoes.*") ? 'open active' : ''}}">
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+            <i class="menu-icon icon-base bx bx-import"></i>
+            <div>Importações</div>
+        </a>
+        <ul class="menu-sub">
+            <li class="menu-item {{ request()->routeIs('importacoes.ouvidoria') ? 'active' : '' }}">
+                <a href="{{route('importacoes.ouvidoria')}}" class="menu-link" >
+                    <div>Ouvidoria</div>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('importacoes.planilhao') ? 'active' : '' }}">
+                <a href="{{route('importacoes.planilhao')}}" class="menu-link" >
+                    <div>Planilhão SAG</div>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('importacoes.missoes.importar') ? 'active' : '' }}">
+                <a href="{{route('importacoes.missoes.importar')}}" class="menu-link" >
+                    <div>Missões</div>
+                </a>
+            </li>
+        </ul>
+    </li>
+@elseif (auth()->user()->level == 4) {{-- Operacional --}}
+    {{-- Operacional --}}
+    <li class="menu-item {{ request()->routeIs("operacional.*") ? 'open active' : ''}}">
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+            <i class="menu-icon icon-base bx bx-layout"></i>
+            <div>Operacional</div>
+        </a>
+        <ul class="menu-sub">
+            <li class="menu-item {{ request()->routeIs('operacional.missoes.*') ? 'active' : '' }}">
+                <a href="{{ route('operacional.missoes.index') }}" class="menu-link">
+                    <div>Missões</div>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('operacional.municipios') ? 'active' : '' }}">
+                <a href="{{ route('operacional.municipios') }}" class="menu-link">
+                    <div>Municípios</div>
+                </a>
+            </li>
+        </ul>
+    </li>
+    {{-- Importações --}}
+    <li class="menu-item {{ request()->routeIs("importacoes.*") ? 'open active' : ''}}">
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+            <i class="menu-icon icon-base bx bx-import"></i>
+            <div>Importações</div>
+        </a>
+        <ul class="menu-sub">
+            <li class="menu-item {{ request()->routeIs('importacoes.ouvidoria') ? 'active' : '' }}">
+                <a href="{{route('importacoes.ouvidoria')}}" class="menu-link" >
+                    <div>Ouvidoria</div>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('importacoes.planilhao') ? 'active' : '' }}">
+                <a href="{{route('importacoes.planilhao')}}" class="menu-link" >
+                    <div>Planilhão SAG</div>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('importacoes.missoes.importar') ? 'active' : '' }}">
+                <a href="{{route('importacoes.missoes.importar')}}" class="menu-link" >
+                    <div>Missões</div>
+                </a>
+            </li>
+        </ul>
+    </li>
+@elseif (auth()->user()->level == 5) {{-- Gestor Operacional --}}
+        {{-- Operacional --}}
         <li class="menu-item {{ request()->routeIs("operacional.*") ? 'open active' : ''}}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon icon-base bx bx-layout"></i>
@@ -231,47 +314,6 @@
             </ul>
         </li>
 {{-- Importações --}}
-        <li class="menu-item {{ request()->routeIs("importacoes.*") ? 'open active' : ''}}">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon icon-base bx bx-import"></i>
-                <div>Importações</div>
-            </a>
-            <ul class="menu-sub">
-                <li class="menu-item {{ request()->routeIs('importacoes.ouvidoria') ? 'active' : '' }}">
-                    <a href="{{route('importacoes.ouvidoria')}}" class="menu-link" >
-                        <div>Ouvidoria</div>
-                    </a>
-                </li>
-                <li class="menu-item {{ request()->routeIs('importacoes.planilhao') ? 'active' : '' }}">
-                    <a href="{{route('importacoes.planilhao')}}" class="menu-link" >
-                        <div>Planilhão SAG</div>
-                    </a>
-                </li>
-                <li class="menu-item {{ request()->routeIs('importacoes.missoes.importar') ? 'active' : '' }}">
-                    <a href="{{route('importacoes.missoes.importar')}}" class="menu-link" >
-                        <div>Missões</div>
-                    </a>
-                </li>
-            </ul>
-        </li>
-@elseif (auth()->user()->level == 4) {{-- Financeiro --}}
-{{--Financeiro--}}         
-        <li class="menu-item {{ request()->routeIs("financeiro.*") ? 'open active' : ''}}">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon icon-base bx bx-money"></i>
-                <div>Financeiro</div>
-            </a>
-
-            <ul class="menu-sub">
-                <li class="menu-item {{ request()->routeIs('financeiro.index') ? 'active' : '' }}">
-                    <a href="{{route('financeiro.index')}}" class="menu-link" >
-                        <div>Situação financeira</div>
-                    </a>
-                </li>
-            </ul>
-        </li>
-
-        {{-- Importações --}}
         <li class="menu-item {{ request()->routeIs("importacoes.*") ? 'open active' : ''}}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon icon-base bx bx-import"></i>

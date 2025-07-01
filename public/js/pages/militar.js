@@ -65,7 +65,9 @@ document.addEventListener("DOMContentLoaded", function (e) {
                     <div class="d-flex align-items-center">
                         <a href="javascript:deletar(${row.id})" class="btn btn-icon"><i class="bx bx-trash icon-md deletar"></i></a>
                         <a href="javascript:editar(${row.id})" class="btn btn-icon"><i class="bx bx-edit icon-md"></i></a>
-                        <a href="javascript:resetar(${row.id})" class="btn btn-icon"><i class="bx bx-key icon-md"></i></a>
+                        <a href="javascript:abrirModalSenha(${row.id}, '${row.nomeguerra}')" class="btn btn-icon" title="Alterar Senha">
+                            <i class="bx bx-key icon-md"></i>
+                        </a>
                     </div>
                 `
             }
@@ -409,6 +411,93 @@ function resetar(id){
                         customClass: { confirmButton: "btn btn-danger" }
                     });
                 });
+        }
+
+        
+    });
+    
+}
+
+function abrirModalSenha(id, nome) {
+    document.getElementById('idMilitarSenha').value = id;
+    document.getElementById('nomeMilitarSenha').innerText = nome;
+    document.getElementById('novaSenha').value = '';
+    document.getElementById('confirmaSenha').value = '';
+    let modal = new bootstrap.Modal(document.getElementById('modalAlterarSenha'));
+    modal.show();
+}
+
+function salvarNovaSenha() {
+    const id = document.getElementById('idMilitarSenha').value;
+    const senha = document.getElementById('novaSenha').value;
+    const confirma = document.getElementById('confirmaSenha').value;
+
+    if (!senha || !confirma) {
+        Swal.fire({
+            icon: "warning",
+            title: "Atenção",
+            text: "Preencha ambos os campos de senha.",
+            customClass: { confirmButton: "btn btn-warning" }
+        });
+        return;
+    }
+    if (senha !== confirma) {
+        Swal.fire({
+            icon: "error",
+            title: "Erro",
+            text: "As senhas não coincidem.",
+            customClass: { confirmButton: "btn btn-danger" }
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: "Confirmação",
+        text: "Deseja realmente alterar a senha deste usuário?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sim, alterar",
+        cancelButtonText: "Cancelar",
+        customClass: {
+            confirmButton: "btn btn-primary",
+            cancelButton: "btn btn-label-secondary"
+        },
+        buttonsStyling: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/administrativo/militares/alterarsenha',
+                method: 'POST',
+                data: {
+                    id: id,
+                    new_password: senha
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('#modalAlterarSenha').modal('hide');
+                        Swal.fire({
+                            icon: "success",
+                            title: "Senha salva com sucesso!",
+                            customClass: { confirmButton: "btn btn-success" }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Erro",
+                            text: response.error || "Erro ao alterar a senha.",
+                            customClass: { confirmButton: "btn btn-danger" }
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Erro",
+                        text: "Erro ao alterar a senha.",
+                        customClass: { confirmButton: "btn btn-danger" }
+                    });
+                }
+            });
         }
     });
 }

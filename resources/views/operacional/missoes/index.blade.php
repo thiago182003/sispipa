@@ -1,8 +1,15 @@
 @extends('layouts.layout')
 @section('content')
+@php
+    $user = Auth::user();
+@endphp
 <div class="container">
     <h1>Missões</h1>
-    <a href="{{ route('operacional.missoes.create') }}" class="btn btn-primary mb-3">Criar nova missão</a>
+    @if(in_array($user->level, [1,5]))
+        <a href="{{ route('operacional.missoes.create') }}" class="btn btn-primary mb-3">Criar nova missão</a>
+    @else
+        <button type="button" class="btn btn-primary mb-3" onclick="alert('Seu nível não permite criar missões!')">Criar nova missão</button>
+    @endif
     <table class="table">
         <thead>
             <tr>
@@ -54,13 +61,13 @@
                             @endif
                         </div>
                         <div class="mt-2">
-                            <span id="botoes-status-{{ $missao->id }}">
-                                @if(is_null($missao->status) || $missao->status === '' || $missao->status === 'null')
-                                    <button class="btn btn-sm btn-success" onclick="confirmarStatus({{ $missao->id }}, 'aprovado')">Aprovado</button>
-                                    <button class="btn btn-sm btn-danger" onclick="confirmarStatus({{ $missao->id }}, 'reprovado')">Reprovado</button>
-                                    <button class="btn btn-sm btn-warning text-dark" onclick="confirmarStatus({{ $missao->id }}, 'parcial')">Aprovada Parcialmente</button>
-                                @endif
-                            </span>
+                           <span id="botoes-status-{{ $missao->id }}">
+    @if(is_null($missao->status) || $missao->status === '' || $missao->status === 'null' || $missao->status === 'parcial')
+        <button class="btn btn-sm btn-success" onclick="verificarPermissaoStatus({{ $missao->id }}, 'aprovado')">Aprovar</button>
+        <button class="btn btn-sm btn-danger" onclick="verificarPermissaoStatus({{ $missao->id }}, 'reprovado')">Reprovar</button>
+        <button class="btn btn-sm btn-warning text-dark" onclick="verificarPermissaoStatus({{ $missao->id }}, 'parcial')">Parcial</button>
+    @endif
+</span>
                             <a href="{{ route('operacional.missoes.edit', $missao->id) }}" class="btn btn-sm btn-primary ms-2">Editar</a>
                             <button class="btn btn-sm btn-outline-danger ms-1" onclick="excluirMissao({{ $missao->id }})">Excluir</button>
                         </div>
@@ -134,9 +141,15 @@ function enviarStatus(missaoId, status, observacao = null) {
                 }
             }
             marcadorDiv.innerHTML = html;
-            // Esconde os botões
+            // Esconde os botões apenas se não for parcial
             let botoesDiv = document.getElementById('botoes-status-' + missaoId);
-            if (botoesDiv) botoesDiv.style.display = 'none';
+            if (botoesDiv) {
+                if (data.status === 'parcial') {
+                    botoesDiv.style.display = '';
+                } else {
+                    botoesDiv.style.display = 'none';
+                }
+            }
         }
     });
 }
@@ -174,6 +187,24 @@ function excluirMissao(missaoId) {
             }
         });
     }
+}
+
+function marcarStatusMissao(missaoId, status) {
+    var userLevel = {{ $user->level ?? 0 }};
+    if (![1,5].includes(userLevel)) {
+        alert('Você não tem permissão para marcar o status.');
+        return;
+    }
+    confirmarStatus(missaoId, status);
+}
+
+function verificarPermissaoStatus(missaoId, status) {
+    var userLevel = {{ $user->level ?? 0 }};
+    if (![1,5].includes(userLevel)) {
+        alert('Seu nível não permite marcar o status da missão!');
+        return;
+    }
+    confirmarStatus(missaoId, status);
 }
 </script>
 @endsection

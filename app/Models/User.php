@@ -141,4 +141,10 @@ class User extends Authenticatable
     public function missoes(){
         return $this->belongsToMany(Missao::class,'missao_militar');
     }
+
+    public const NIVEL_ADMIN = 1;
+    public const NIVEL_ADMINISTRATIVO = 2;
+    public const NIVEL_FINANCEIRO = 3;
+    public const NIVEL_OPERACIONAL = 4;
+    public const NIVEL_GESTOR_OPERACIONAL = 5;
 }

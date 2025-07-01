@@ -129,3 +129,32 @@ window.omsOptionsHtml = `{!! collect($oms)->map(function($om){
 }
 </style>
 @endsection
+
+<script>
+function liberarManual(btn) {
+    let div = btn.closest('.d-flex');
+    // Remove autocomplete e id oculto
+    div.querySelector('.autocomplete-militar').value = '';
+    div.querySelector('.militar-id-hidden').value = '';
+    // Adiciona campos manuais se não existirem
+    if (!div.querySelector('.manual-fields')) {
+        let manualFields = document.createElement('div');
+        manualFields.className = 'manual-fields d-flex flex-wrap align-items-center gap-2 mt-2';
+        manualFields.innerHTML = `
+            <input type="text" class="form-control" name="${div.querySelector('.autocomplete-militar').name.replace('[autocomplete]', '[nome]')}" placeholder="Nome completo do militar" required>
+            <select class="form-select" name="${div.querySelector('.autocomplete-militar').name.replace('[autocomplete]', '[postograduacao_id]')}" required>
+                <option value="">Posto/Graduação</option>
+                ${window.postosOptionsHtml}
+            </select>
+            <select class="form-select" name="${div.querySelector('.autocomplete-militar').name.replace('[autocomplete]', '[om_servico_id]')}" required>
+                <option value="">OM</option>
+                ${window.omsOptionsHtml}
+            </select>
+        `;
+        div.appendChild(manualFields);
+    }
+    // Desabilita autocomplete
+    div.querySelector('.autocomplete-militar').setAttribute('readonly', true);
+    btn.disabled = true;
+}
+</script>

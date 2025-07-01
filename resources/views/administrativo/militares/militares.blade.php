@@ -161,6 +161,7 @@
                                                 <option value="2">Administrativo</option>
                                                 <option value="3">Financeiro</option>
                                                 <option value="4">Operacional</option>
+                                                <option value="5">Gestor Operacional</option> <!-- NOVO NÍVEL -->
                                             </select>
                                         </div>
                                     </div>
@@ -179,7 +180,32 @@
         </div>
     </div>
 
-
-
-    
+    <!-- Modal Alterar Senha -->
+    <div class="modal fade" id="modalAlterarSenha" tabindex="-1" aria-labelledby="modalAlterarSenhaLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form id="formAlterarSenha" onsubmit="return false;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalAlterarSenhaLabel">Alterar Senha de <span id="nomeMilitarSenha"></span></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="idMilitarSenha" name="idMilitarSenha">
+              <div class="mb-3">
+                <label for="novaSenha" class="form-label">Nova Senha</label>
+                <input type="password" class="form-control" id="novaSenha" name="novaSenha" required>
+              </div>
+              <div class="mb-3">
+                <label for="confirmaSenha" class="form-label">Confirmação da Senha</label>
+                <input type="password" class="form-control" id="confirmaSenha" name="confirmaSenha" required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary" onclick="salvarNovaSenha()">Salvar Senha</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
 @endsection
