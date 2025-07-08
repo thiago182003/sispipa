@@ -24,6 +24,7 @@ class Planodeferias extends Model
         'militar_id',
         'anoreferencia',
         'status',
+        'boletim', // NOVO
     ];
 
     protected $appends = ['periodo1','periodo2','periodo3'];
@@ -76,5 +77,10 @@ class Planodeferias extends Model
                     Carbon::parse($this->p3fim)->translatedFormat('d M'));
             }
         );
+    }
+
+    public function mudancas()
+    {
+        return $this->hasMany(PlanodeferiasMudanca::class, 'planodeferias_id');
     }
 }

@@ -165,4 +165,13 @@ class UserController extends Controller
         }
         return response()->json(['results' => $results]);
     }
+
+    public function getVeterano(Request $request)
+    {
+        $militar = \App\Models\User::find($request->id);
+        if (!$militar) {
+            return response()->json(['error' => 'Militar não encontrado'], 404);
+        }
+        return response()->json(['veterano' => (bool)$militar->veterano]);
+    }
 }

@@ -67,6 +67,12 @@
                         <div>Plano de Férias</div>
                     </a>
                 </li>
+                <li class="menu-item {{ request()->is('e1/descontoemferias*') ? 'active' : '' }}">
+    <a href="{{ url('/e1/descontoemferias') }}" class="menu-link">
+       
+        <div>Desconto em Férias</div>
+    </a>
+</li>
              
             </ul>
         </li>
@@ -82,6 +88,11 @@
                 <li class="menu-item {{ request()->routeIs('operacional.missoes.*') ? 'active' : '' }}">
                     <a href="{{ route('operacional.missoes.index') }}" class="menu-link">
                         <div>Missões</div>
+                    </a>
+                </li>
+                 <li class="menu-item {{ request()->routeIs('objetivos.index') ? 'active' : '' }}">
+                    <a href="{{ route('objetivos.index') }}" class="menu-link">
+                        <div>Objetivos</div>
                     </a>
                 </li>
                 <li class="menu-item {{ request()->routeIs('operacional.municipios') ? 'active' : '' }}">
@@ -182,6 +193,12 @@
                         <div>Plano de Férias</div>
                     </a>
                 </li>
+                <li class="menu-item {{ request()->is('e1/descontoemferias*') ? 'active' : '' }}">
+    <a href="{{ url('/e1/descontoemferias') }}" class="menu-link">
+        
+        <div>Desconto em Férias</div>
+    </a>
+</li>
             </ul>
         </li>
 
@@ -260,6 +277,12 @@
                 <a href="{{ route('operacional.missoes.index') }}" class="menu-link">
                     <div>Missões</div>
                 </a>
+                <li class="menu-item {{ request()->routeIs('objetivos.index') ? 'active' : '' }}">
+        <a href="{{ route('objetivos.index') }}" class="menu-link">
+            <div>Objetivos</div>
+        </a>
+    </li>
+
             </li>
             <li class="menu-item {{ request()->routeIs('operacional.municipios') ? 'active' : '' }}">
                 <a href="{{ route('operacional.municipios') }}" class="menu-link">
@@ -306,6 +329,11 @@
                         <div>Missões</div>
                     </a>
                 </li>
+                <li class="menu-item {{ request()->routeIs('objetivos.index') ? 'active' : '' }}">
+        <a href="{{ route('objetivos.index') }}" class="menu-link">
+            <div>Objetivos</div>
+        </a>
+    </li>
                 <li class="menu-item {{ request()->routeIs('operacional.municipios') ? 'active' : '' }}">
                     <a href="{{ route('operacional.municipios') }}" class="menu-link">
                         <div>Municípios</div>

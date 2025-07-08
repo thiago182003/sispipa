@@ -39,6 +39,8 @@
                         <th>1º Período</th>
                         <th>2º Período</th>
                         <th>3º Período</th>
+                        <th>Ano Referência</th> <!-- NOVA COLUNA -->
+                        <th>Boletim</th>         <!-- NOVA COLUNA -->
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -63,57 +65,41 @@
             <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
                 <form class="add-new-user pt-0" id="form-secao" onsubmit="return false">
                     @csrf
+                    <input type="hidden" class="form-control" id="id" name="id" />
                     <div class="mb-6 form-control-validation">
-                        <input type="hidden" class="form-control" id="id" name="id" />
                         <label class="form-label" for="selMilitar">Militar</label>
-                        <select id="selMilitar" name="selMilitar" class="form-select">
+                        <select id="selMilitar" name="militar_id" class="form-select">
                             <option value="">Selecione um militar</option>
                             @foreach ($militares as $militar)
                                 <option value="{{$militar->id}}" > {{$militar->pg_nome}} </option>
                             @endforeach
                         </select>
-                        {{-- <input type="text" class="form-control" id="nome" name="nome" placeholder="Nome da seção"
-                            aria-label="Nome da seção" /> --}}
+                        <div id="dias-disponiveis" class="form-text mt-1"></div> <!-- NOVO ELEMENTO -->
                     </div>
                     <div class="mb-6 form-control-validation">
                         <label class="form-label" for="qtdparcelas">Qtd. Parcelas</label>
-                        <input type="number" min='1' max="3" id="qtdparcelas" name="qtdparcelas" class="form-control" placeholder="Quantidade de parcelas"
-                            aria-label="Quantidade de parcelas"/>
+                        <select id="qtdparcelas" name="qtdparcelas" class="form-select" required>
+                            <option value="">Selecione</option>
+                            <option value="1">01 - 30 dias</option>
+                            <option value="2">02 - 15 dias</option>
+                            <option value="3">03 - 10 dias</option>
+                        </select>
+                    </div>
+                    <div id="periodos-container">
+                        <!-- Campos de períodos serão inseridos aqui via JS -->
                     </div>
                     <div class="mb-6 form-control-validation">
-                        <label class="form-label" for="p1inicio">Inicio - 1º Periodo</label>
-                        <input type="date" id="p1inicio" name="p1inicio" class="form-control" placeholder="Inicio - 1º Periodo"
-                            aria-label="Inicio - 1º Periodo"/>
+                        <label class="form-label" for="anoreferencia">Ano Referência</label>
+                        <input type="text" id="anoreferencia" name="anoreferencia" class="form-control" placeholder="Ano Referência" maxlength="4" pattern="\d{4}" required aria-label="Ano Referência"/>
                     </div>
+                    <div id="mudancas-container"></div>
+                    <button type="button" class="btn btn-outline-secondary mb-3" id="btn-add-mudanca">
+                        Mudança no Plano
+                    </button>
+                    {{-- O campo boletim permanece depois --}}
                     <div class="mb-6 form-control-validation">
-                        <label class="form-label" for="p1fim">Fim - 1º Periodo</label>
-                        <input type="date" id="p1fim" name="p1fim" class="form-control" placeholder="Fim - 1º Periodo"
-                            aria-label="Fim - 1º Periodo"/>
-                    </div>
-                    <div class="mb-6 form-control-validation">
-                        <label class="form-label" for="p2inicio">Inicio - 2º Periodo</label>
-                        <input type="date" id="p2inicio" name="p2inicio" class="form-control" placeholder="Inicio - 2º Periodo"
-                            aria-label="Inicio - 2º Periodo"/>
-                    </div>
-                    <div class="mb-6 form-control-validation">
-                        <label class="form-label" for="p2fim">Fim - 2º Periodo</label>
-                        <input type="date" id="p2fim" name="p2fim" class="form-control" placeholder="Fim - 2º Periodo"
-                            aria-label="Fim - 2º Periodo"/>
-                    </div>
-                    <div class="mb-6 form-control-validation">
-                        <label class="form-label" for="p3inicio">Inicio - 3º Periodo</label>
-                        <input type="date" id="p3inicio" name="p3inicio" class="form-control" placeholder="Inicio - 3º Periodo"
-                            aria-label="Inicio - 3º Periodo"/>
-                    </div>
-                    <div class="mb-6 form-control-validation">
-                        <label class="form-label" for="p3fim">Fim - 3º Periodo</label>
-                        <input type="date" id="p3fim" name="p3fim" class="form-control" placeholder="Fim - 3º Periodo"
-                            aria-label="Fim - 3º Periodo"/>
-                    </div>
-                    <div class="mb-6 form-control-validation">
-                        <label class="form-label" for="p3inicio">Ano Referência</label>
-                        <input type="text" id="anoreferencia" name="anoreferencia" class="form-control" placeholder="Ano Referência"
-                            aria-label="Ano Referência"/>
+                        <label class="form-label" for="boletim">Boletim</label>
+                        <input type="text" id="boletim" name="boletim" class="form-control" placeholder="Informe o boletim" maxlength="100" required />
                     </div>
                     <button type="submit" class="btn btn-primary me-3 data-submit">Salvar</button>
                     <button type="reset" class="btn btn-label-danger" data-bs-dismiss="offcanvas">Cancelar</button>

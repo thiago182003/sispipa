@@ -17,50 +17,55 @@
             </div>
         </div>
         <div class="mb-3">
-            <label class="form-label">Objetivo da Missão:</label>
-            @php
-                $objetivos = $missao->objetivos ?? [];
-            @endphp
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" id="cloro" onchange="toggleObjetivo('cloro')"
-                    {{ isset($objetivos['Entrega de Cloro']) && count($objetivos['Entrega de Cloro']) ? 'checked' : '' }}>
-                <label class="form-check-label" for="cloro">Entrega de Cloro</label>
-            </div>
-            <div id="objetivo-cloro" class="ms-4 mb-3" style="{{ isset($objetivos['Entrega de Cloro']) && count($objetivos['Entrega de Cloro']) ? '' : 'display:none;' }}">
-                <div id="municipios-cloro-list" class="mb-2">
-                    @if(isset($objetivos['Entrega de Cloro']))
-                        @foreach($objetivos['Entrega de Cloro'] as $municipio)
-                            <span class="badge bg-primary me-2 mb-2">{{ $municipio }}</span>
-                        @endforeach
-                    @endif
-                </div>
-                <div class="input-group mb-2" style="max-width:400px;">
-                    <input type="text" class="form-control" id="autocomplete-cloro" placeholder="Digite o nome do município..." autocomplete="off" oninput="mostrarSugestoes('cloro')">
-                    <button type="button" class="btn btn-success" onclick="adicionarMunicipio('cloro')">Adicionar</button>
-                </div>
-                <div id="sugestoes-cloro" class="list-group position-absolute" style="z-index:10; max-width:400px;"></div>
-                <input type="hidden" name="objetivos[Entrega de Cloro]" id="input-cloro" value='@json($objetivos["Entrega de Cloro"] ?? [])'>
-            </div>
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" id="compdec" onchange="toggleObjetivo('compdec')"
-                    {{ isset($objetivos['Visita CompDec']) && count($objetivos['Visita CompDec']) ? 'checked' : '' }}>
-                <label class="form-check-label" for="compdec">Visita Compdec</label>
-            </div>
-            <div id="objetivo-compdec" class="ms-4 mb-3" style="{{ isset($objetivos['Visita CompDec']) && count($objetivos['Visita CompDec']) ? '' : 'display:none;' }}">
-                <div id="municipios-compdec-list" class="mb-2">
-                    @if(isset($objetivos['Visita CompDec']))
-                        @foreach($objetivos['Visita CompDec'] as $municipio)
-                            <span class="badge bg-primary me-2 mb-2">{{ $municipio }}</span>
-                        @endforeach
-                    @endif
-                </div>
-                <div class="input-group mb-2" style="max-width:400px;">
-                    <input type="text" class="form-control" id="autocomplete-compdec" placeholder="Digite o nome do município..." autocomplete="off" oninput="mostrarSugestoes('compdec')">
-                    <button type="button" class="btn btn-success" onclick="adicionarMunicipio('compdec')">Adicionar</button>
-                </div>
-                <div id="sugestoes-compdec" class="list-group position-absolute" style="z-index:10; max-width:400px;"></div>
-                <input type="hidden" name="objetivos[Visita CompDec]" id="input-compdec" value='@json($objetivos["Visita CompDec"] ?? [])'>
-            </div>
+            <label class="form-label">Objetivos da Missão:</label>
+            <table class="table table-bordered align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">Selecionar</th>
+                        <th>Nome do Objetivo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(\App\Models\Objetivo::orderBy('nome')->get() as $objetivo)
+                    <tr>
+                        <td class="text-center">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input objetivo-checkbox"
+                                    id="objetivo-{{ $objetivo->id }}"
+                                    name="objetivos[]" value="{{ $objetivo->id }}"
+                                    onchange="toggleObjetivo('{{ $objetivo->id }}')"
+                                    {{ array_key_exists($objetivo->nome, $missao->objetivos ?? []) ? 'checked' : '' }}>
+                            </div>
+                        </td>
+                        <td>
+                            <label for="objetivo-{{ $objetivo->id }}" class="mb-0">{{ $objetivo->nome }}</label>
+                            <div class="municipios-objetivo mt-2" id="municipios-objetivo-{{ $objetivo->id }}" style="{{ array_key_exists($objetivo->nome, $missao->objetivos ?? []) ? '' : 'display:none;' }}">
+                                <label class="form-label">Municípios para este objetivo:</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control municipio-autocomplete"
+                                           id="autocomplete-{{ $objetivo->id }}"
+                                           placeholder="Digite o nome do município"
+                                           autocomplete="off"
+                                           oninput="mostrarSugestoes('{{ $objetivo->id }}')">
+                                    <button type="button" class="btn btn-primary" onclick="adicionarMunicipio({{ $objetivo->id }})">Adicionar</button>
+                                </div>
+                                <div class="list-group position-absolute w-50 sugestoes-municipio" id="sugestoes-{{ $objetivo->id }}" style="z-index:10;"></div>
+                                <div id="municipios-{{ $objetivo->id }}-list" class="mb-2">
+                                    @if(array_key_exists($objetivo->nome, $missao->objetivos ?? []))
+                                        @foreach($missao->objetivos[$objetivo->nome] as $municipio)
+                                            <span class="badge bg-primary me-2 mb-2">{{ $municipio }}</span>
+                                        @endforeach
+                                    @endif
+                                </div>
+                                <input type="hidden" name="municipios_por_objetivo[{{ $objetivo->id }}]" id="input-{{ $objetivo->id }}"
+                                    value='@json($missao->objetivos[$objetivo->nome] ?? [])'>
+                                <small class="text-muted">Digite e selecione municípios para este objetivo.</small>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
         <div class="mb-3">
             <label class="form-label">Nome dos militares que irão:</label>
@@ -99,12 +104,12 @@ window.militaresOptionsHtml = `{!! collect($militares)->map(function($militar){
         $militar->nomeguerra . ' (OM: ' . ($militar->omServico->nome ?? 'Sem OM') . ')' .
         '</option>';
 })->implode('') !!}`;
-window.militaresArray = @json($militares->map(function($m){
+window.militaresArray = {!! $militares->map(function($m){
     return [
         'id' => $m->id,
         'nome' => ($m->postoGraduacao->nome ?? '') . ' ' . $m->nomeguerra . ' (' . ($m->omServico->nome ?? '') . ')'
     ];
-}));
+})->toJson() !!};
 window.postosOptionsHtml = `{!! collect($postos)->map(function($posto){
     return '<option value="' . $posto->id . '">' . $posto->nome . '</option>';
 })->implode('') !!}`;
@@ -126,6 +131,17 @@ window.omsOptionsHtml = `{!! collect($oms)->map(function($om){
 }
 .list-group.position-absolute .list-group-item:hover {
     background: #f1f3f4;
+}
+.manual-fields {
+    width: 100%;
+}
+.manual-fields input,
+.manual-fields select {
+    min-width: 150px;
+    margin-bottom: 0;
+}
+.manual-fields .btn {
+    margin-top: 4px;
 }
 </style>
 @endsection
@@ -157,4 +173,5 @@ function liberarManual(btn) {
     div.querySelector('.autocomplete-militar').setAttribute('readonly', true);
     btn.disabled = true;
 }
+
 </script>

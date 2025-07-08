@@ -15,34 +15,42 @@
             </div>
         </div>
         <div class="mb-3">
-            <label class="form-label">Objetivo da Missão:</label>
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" id="cloro" onchange="toggleObjetivo('cloro')">
-                <label class="form-check-label" for="cloro">Entrega de Cloro</label>
-            </div>
-            <div id="objetivo-cloro" class="ms-4 mb-3" style="display:none;">
-                <div id="municipios-cloro-list" class="mb-2"></div>
-                <div class="input-group mb-2" style="max-width:400px;">
-                    <input type="text" class="form-control" id="autocomplete-cloro" placeholder="Digite o nome do município..." autocomplete="off" oninput="mostrarSugestoes('cloro')">
-                    <button type="button" class="btn btn-success" onclick="adicionarMunicipio('cloro')">Adicionar</button>
-                </div>
-                <div id="sugestoes-cloro" class="list-group position-absolute" style="z-index:10; max-width:400px;"></div>
-                <input type="hidden" name="objetivos[Entrega de Cloro]" id="input-cloro">
-            </div>
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" id="compdec" onchange="toggleObjetivo('compdec')">
-                <label class="form-check-label" for="compdec">Visita Compdec</label>
-            </div>
-            <div id="objetivo-compdec" class="ms-4 mb-3" style="display:none;">
-                <div id="municipios-compdec-list" class="mb-2"></div>
-                <div class="input-group mb-2" style="max-width:400px;">
-                    <input type="text" class="form-control" id="autocomplete-compdec" placeholder="Digite o nome do município..." autocomplete="off" oninput="mostrarSugestoes('compdec')">
-                    <button type="button" class="btn btn-success" onclick="adicionarMunicipio('compdec')">Adicionar</button>
-                </div>
-                <div id="sugestoes-compdec" class="list-group position-absolute" style="z-index:10; max-width:400px;"></div>
-                <input type="hidden" name="objetivos[Visita CompDec]" id="input-compdec">
-            </div>
+            <label class="form-label">Objetivos da Missão:</label>
+            <table class="table table-bordered align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">Selecionar</th>
+                        <th>Nome do Objetivo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($objetivos as $objetivo)
+                    <tr>
+                        <td class="text-center">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input objetivo-checkbox" id="objetivo-{{ $objetivo->id }}" name="objetivos[]" value="{{ $objetivo->id }}" onchange="toggleObjetivo('{{ $objetivo->id }}')">
+                            </div>
+                        </td>
+                        <td>
+                            <label for="objetivo-{{ $objetivo->id }}" class="mb-0">{{ $objetivo->nome }}</label>
+                            <div class="municipios-objetivo mt-2" id="municipios-objetivo-{{ $objetivo->id }}" style="display:none;">
+                                <label class="form-label">Municípios para este objetivo:</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control municipio-autocomplete" id="autocomplete-{{ $objetivo->id }}" placeholder="Digite o nome do município" autocomplete="off" oninput="mostrarSugestoes('{{ $objetivo->id }}')">
+                                    <button type="button" class="btn btn-primary" onclick="adicionarMunicipio({{ $objetivo->id }})">Adicionar</button>
+                                </div>
+                                <div class="list-group position-absolute w-50 sugestoes-municipio" id="sugestoes-{{ $objetivo->id }}" style="z-index:10;"></div>
+                                <div id="municipios-{{ $objetivo->id }}-list" class="mb-2"></div>
+                                <input type="hidden" name="municipios_por_objetivo[{{ $objetivo->id }}]" id="input-{{ $objetivo->id }}">
+                                <small class="text-muted">Digite e selecione municípios para este objetivo.</small>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
+
         <div class="mb-3">
             <label class="form-label">Nome dos militares que irão:</label>
             <div id="militares-lista">
@@ -66,12 +74,6 @@
 </div>
 <script>
 window.municipiosArray = @json($municipios->pluck('nome'));
-window.militaresOptionsHtml = `{!! collect($militares)->map(function($militar){
-    return '<option value="' . $militar->id . '">' .
-        ($militar->postoGraduacao->nome ?? 'Sem posto') . ' ' .
-        $militar->nomeguerra . ' (OM: ' . ($militar->omServico->nome ?? 'Sem OM') . ')' .
-        '</option>';
-})->implode('') !!}`;
 window.militaresArray = @json($militares->map(function($m){
     return [
         'id' => $m->id,
@@ -100,33 +102,16 @@ window.omsOptionsHtml = `{!! collect($oms)->map(function($om){
 .list-group.position-absolute .list-group-item:hover {
     background: #f1f3f4;
 }
-</style>
-<script>
-function liberarManual(btn) {
-    let div = btn.closest('.d-flex');
-    // Remove autocomplete e id oculto
-    div.querySelector('.autocomplete-militar').value = '';
-    div.querySelector('.militar-id-hidden').value = '';
-    // Adiciona campos manuais se não existirem
-    if (!div.querySelector('.manual-fields')) {
-        let manualFields = document.createElement('div');
-        manualFields.className = 'manual-fields d-flex flex-wrap align-items-center gap-2 mt-2';
-        manualFields.innerHTML = `
-            <input type="text" class="form-control" name="${div.querySelector('.autocomplete-militar').name.replace('[autocomplete]', '[nome]')}" placeholder="Nome completo do militar" required>
-            <select class="form-select" name="${div.querySelector('.autocomplete-militar').name.replace('[autocomplete]', '[postograduacao_id]')}" required>
-                <option value="">Posto/Graduação</option>
-                ${window.postosOptionsHtml}
-            </select>
-            <select class="form-select" name="${div.querySelector('.autocomplete-militar').name.replace('[autocomplete]', '[om_servico_id]')}" required>
-                <option value="">OM</option>
-                ${window.omsOptionsHtml}
-            </select>
-        `;
-        div.appendChild(manualFields);
-    }
-    // Desabilita autocomplete
-    div.querySelector('.autocomplete-militar').setAttribute('readonly', true);
-    btn.disabled = true;
+.manual-fields input,
+.manual-fields select {
+    min-width: 150px;
+    margin-bottom: 0;
 }
-</script>
+.manual-fields .btn {
+    margin-top: 4px;
+}
+.manual-fields {
+    width: 100%;
+}
+</style>
 @endsection

@@ -26,7 +26,8 @@
                     <td>
                         @foreach($missao->objetivos as $objetivo => $municipios)
                             @php
-                                $municipios_filtrados = array_filter($municipios, fn($m) => !empty($m));
+                                $municipios_array = is_array($municipios) ? $municipios : [];
+                                $municipios_filtrados = array_filter($municipios_array, fn($m) => !empty($m));
                             @endphp
                             @if(count($municipios_filtrados) > 0)
                                 <strong>{{ $objetivo }}</strong>

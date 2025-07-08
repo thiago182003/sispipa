@@ -58,7 +58,8 @@ class MissaoController extends Controller
         $municipios = \App\Models\Municipio::orderBy('nome')->get();
         $postos = \App\Models\PostoGraduacoes::orderBy('nome')->get();
         $oms = \App\Models\Oms::orderBy('nome')->get();
-        return view('operacional.missoes.criar', compact('militares', 'municipios', 'postos', 'oms'));
+        $objetivos = \App\Models\Objetivo::orderBy('nome')->get(); // Adicione esta linha
+        return view('operacional.missoes.criar', compact('militares', 'municipios', 'postos', 'oms', 'objetivos'));
     }
 
     public function store(Request $request)
@@ -66,22 +67,26 @@ class MissaoController extends Controller
         $request->validate([
             'data_inicio' => 'required|date',
             'data_fim' => 'required|date|after_or_equal:data_inicio',
-            'objetivos' => 'required|array',
+            'objetivos' => 'required|array|min:1',
             'militares' => 'required|array|min:2|max:4',
         ]);
 
-        // Decodifica os municípios selecionados
+        $objetivosSelecionados = $request->input('objetivos', []);
+        $municipiosPorObjetivo = $request->input('municipios_por_objetivo', []);
+
         $objetivos = [];
-        foreach ($request->objetivos as $objetivo => $municipiosJson) {
-            $objetivos[$objetivo] = json_decode($municipiosJson, true) ?? [];
+        foreach ($objetivosSelecionados as $objetivoId) {
+            $municipios = isset($municipiosPorObjetivo[$objetivoId]) ? json_decode($municipiosPorObjetivo[$objetivoId], true) : [];
+            $objetivoNome = \App\Models\Objetivo::find($objetivoId)->nome ?? $objetivoId;
+            $objetivos[$objetivoNome] = $municipios;
         }
 
         Missao::create([
             'data_inicio' => $request->data_inicio,
             'data_fim' => $request->data_fim,
-            'objetivos' => $objetivos,
+            'objetivos' => $objetivos, // Agora é um array de IDs
             'militares' => $request->militares,
-            'status' => null, // Garante que começa sem status
+            'status' => null,
             'observacao' => null,
         ]);
 
@@ -106,9 +111,14 @@ class MissaoController extends Controller
             'militares' => 'required|array|min:2|max:4',
         ]);
 
+        $objetivosSelecionados = $request->input('objetivos', []);
+        $municipiosPorObjetivo = $request->input('municipios_por_objetivo', []);
+
         $objetivos = [];
-        foreach ($request->objetivos as $objetivo => $municipiosJson) {
-            $objetivos[$objetivo] = json_decode($municipiosJson, true) ?? [];
+        foreach ($objetivosSelecionados as $objetivoId) {
+            $municipios = isset($municipiosPorObjetivo[$objetivoId]) ? json_decode($municipiosPorObjetivo[$objetivoId], true) : [];
+            $objetivoNome = \App\Models\Objetivo::find($objetivoId)->nome ?? $objetivoId;
+            $objetivos[$objetivoNome] = $municipios;
         }
 
         $missao->update([

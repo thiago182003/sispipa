@@ -20,6 +20,7 @@ use App\Http\Middleware\CheckAdminForRestrictedRoute;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ObjetivoController;
 
 // rotas sem estar logado
 Route::middleware('guest')->group(function () {
@@ -113,6 +114,7 @@ Route::middleware('auth')->group(function () {
             // Adicione esta rota para permitir o upload de missões via administrativo
             Route::post('/importacoes/missoes', [ImportacoesController::class, 'missoesupload'])->name('missoes.upload');
             Route::get('/militares/buscar', [UserController::class, 'buscar'])->name('militares.buscar');
+            Route::post('/militares/get-veterano', [\App\Http\Controllers\UserController::class, 'getVeterano']);
         });
 
     Route::prefix('financeiro')->name('financeiro.')->group(function () {
@@ -125,7 +127,17 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('/e1')->group(function () {
-        //
+        Route::get('/planodeferias', [PlanodeferiasController::class, 'index']);
+        Route::post('/planodeferias/show', [PlanodeferiasController::class, 'show']);
+        Route::post('/planodeferias/delete', [PlanodeferiasController::class, 'delete']);
+        Route::get('/administrativo/getplanodeferias', [PlanodeferiasController::class, 'getplanodeferias']);
+        Route::get('/descontoemferias', [\App\Http\Controllers\DescontoemferiasController::class, 'index']);
+        Route::get('/descontoemferias/getall', [\App\Http\Controllers\DescontoemferiasController::class, 'getAll']);
+        Route::post('/descontoemferias/store', [\App\Http\Controllers\DescontoemferiasController::class, 'store']);
+        Route::post('/descontoemferias/show', [\App\Http\Controllers\DescontoemferiasController::class, 'show']);
+        Route::post('/descontoemferias/delete', [\App\Http\Controllers\DescontoemferiasController::class, 'delete']);
+        Route::get('/descontoemferias/download/{id}', [\App\Http\Controllers\DescontoemferiasController::class, 'download']);
+        Route::post('/descontoemferias/get-descontos', [\App\Http\Controllers\DescontoemferiasController::class, 'getDescontos']);
     });
 
     Route::prefix('/operacional')->name('operacional.')->group(function () {
@@ -175,4 +187,8 @@ Route::prefix('/gestao')->name('gestao.')->group(function () {
     Route::post('/atividades/store', [AtividadesController::class, 'store'])->name('atividades.store');
     Route::post('/atividades/update', [AtividadesController::class, 'update'])->name('atividades.update');
     Route::post('/atividades/destroy', [AtividadesController::class, 'destroy'])->name('atividades.destroy');
+});
+
+Route::middleware(['auth'])->group(function() {
+    Route::resource('objetivos', ObjetivoController::class)->only(['index', 'store', 'destroy']);
 });

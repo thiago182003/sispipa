@@ -5,13 +5,16 @@ function toggleMunicipios(objetivo) {
 }
 
 window.toggleObjetivo = function(objetivo) {
-    let checked = document.getElementById(objetivo).checked;
-    document.getElementById('objetivo-' + objetivo).style.display = checked ? 'block' : 'none';
-    if (!checked) {
-        document.getElementById('municipios-' + objetivo + '-list').innerHTML = '';
-        document.getElementById('input-' + objetivo).value = '';
-        document.getElementById('autocomplete-' + objetivo).value = '';
-        document.getElementById('sugestoes-' + objetivo).innerHTML = '';
+    let checked = document.getElementById('objetivo-' + objetivo).checked;
+    let div = document.getElementById('municipios-objetivo-' + objetivo);
+    if (div) {
+        div.style.display = checked ? 'block' : 'none';
+        if (!checked) {
+            document.getElementById('municipios-' + objetivo + '-list').innerHTML = '';
+            document.getElementById('input-' + objetivo).value = '';
+            document.getElementById('autocomplete-' + objetivo).value = '';
+            document.getElementById('sugestoes-' + objetivo).innerHTML = '';
+        }
     }
 };
 
@@ -92,24 +95,42 @@ window.atualizarInput = function(objetivo) {
 
 // --------- JS para "Militar Não listado" ---------
 window.liberarManual = function(btn) {
-    let div = btn.parentElement;
+    let div = btn.closest('.d-flex') || btn.parentElement;
     let index = Array.from(div.parentNode.children).indexOf(div);
-    div.innerHTML = `
-        <select name="militares[${index+1}][postograduacao_id]" class="form-select me-2" required>
-            <option value="">Posto/Graduação</option>
-            ${window.postosOptionsHtml || ''}
-        </select>
-        <input type="text" name="militares[${index+1}][nome]" class="form-control me-2" placeholder="Nome do Militar" required>
-        <select name="militares[${index+1}][om_servico_id]" class="form-select me-2" required>
-            <option value="">OM</option>
-            ${window.omsOptionsHtml || ''}
-        </select>
-        <button type="button" class="btn btn-outline-secondary" onclick="voltarSelect(this)">Militar Listado</button>
-    `;
+    // Remove autocomplete e id oculto se existirem
+    let autocomplete = div.querySelector('.autocomplete-militar');
+    if (autocomplete) autocomplete.value = '';
+    let idHidden = div.querySelector('.militar-id-hidden');
+    if (idHidden) idHidden.value = '';
+    // Adiciona campos manuais se não existirem
+    if (!div.querySelector('.manual-fields')) {
+        let manualFields = document.createElement('div');
+        manualFields.className = 'manual-fields w-100 mt-2';
+        manualFields.innerHTML = `
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <input type="text" class="form-control" style="min-width:200px" name="militares[${index+1}][nome]" placeholder="Nome completo do militar" required>
+                <select class="form-select" style="min-width:180px" name="militares[${index+1}][postograduacao_id]" required>
+                    <option value="">Posto/Graduação</option>
+                    ${window.postosOptionsHtml || ''}
+                </select>
+                <select class="form-select" style="min-width:180px" name="militares[${index+1}][om_servico_id]" required>
+                    <option value="">OM</option>
+                    ${window.omsOptionsHtml || ''}
+                </select>
+            </div>
+            <div class="mt-2">
+                <button type="button" class="btn btn-outline-secondary" onclick="voltarSelect(this)">Militar Listado</button>
+            </div>
+        `;
+        div.appendChild(manualFields);
+    }
+    // Desabilita autocomplete
+    if (autocomplete) autocomplete.setAttribute('readonly', true);
+    btn.disabled = true;
 };
 
 window.voltarSelect = function(btn) {
-    let div = btn.parentElement;
+    let div = btn.closest('.d-flex') || btn.parentElement;
     let index = Array.from(div.parentNode.children).indexOf(div);
     div.innerHTML = `
         <input type="text" class="form-control me-2 autocomplete-militar" 
@@ -170,6 +191,39 @@ window.initAutocompleteMilitar = function(input) {
     input.onblur = function() {
         setTimeout(() => { sugestoesDiv.innerHTML = ''; }, 200);
     };
+    // Suporte a navegação por teclado no autocomplete de militares
+    let currentIndex = -1;
+    input.addEventListener('keydown', function(e) {
+        let itens = sugestoesDiv.querySelectorAll('button');
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (itens.length > 0) {
+                currentIndex = (currentIndex + 1) % itens.length;
+                itens.forEach(btn => btn.classList.remove('active'));
+                itens[currentIndex].classList.add('active');
+                itens[currentIndex].scrollIntoView({ block: 'nearest' });
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (itens.length > 0) {
+                currentIndex = (currentIndex - 1 + itens.length) % itens.length;
+                itens.forEach(btn => btn.classList.remove('active'));
+                itens[currentIndex].classList.add('active');
+                itens[currentIndex].scrollIntoView({ block: 'nearest' });
+            }
+        } else if (e.key === 'Enter') {
+            if (itens.length > 0 && currentIndex >= 0) {
+                e.preventDefault();
+                itens[currentIndex].click();
+                currentIndex = -1;
+            }
+        } else {
+            currentIndex = -1;
+        }
+    });
+    input.addEventListener('input', function() {
+        currentIndex = -1;
+    });
 };
 
 // Inicializar autocomplete para todos os campos ao carregar a página
@@ -177,4 +231,50 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.autocomplete-militar').forEach(input => {
         window.initAutocompleteMilitar(input);
     });
+
+    // Suporte a navegação por teclado no autocomplete de municípios
+    document.querySelectorAll('[id^="autocomplete-"]').forEach(function(input) {
+        let objetivo = input.id.replace('autocomplete-', '');
+        let sugestoesDiv = document.getElementById('sugestoes-' + objetivo);
+
+        let currentIndex = -1;
+
+        input.addEventListener('keydown', function(e) {
+            let itens = sugestoesDiv.querySelectorAll('button');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (itens.length > 0) {
+                    currentIndex = (currentIndex + 1) % itens.length;
+                    itens.forEach(btn => btn.classList.remove('active'));
+                    itens[currentIndex].classList.add('active');
+                    itens[currentIndex].scrollIntoView({ block: 'nearest' });
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (itens.length > 0) {
+                    currentIndex = (currentIndex - 1 + itens.length) % itens.length;
+                    itens.forEach(btn => btn.classList.remove('active'));
+                    itens[currentIndex].classList.add('active');
+                    itens[currentIndex].scrollIntoView({ block: 'nearest' });
+                }
+            } else if (e.key === 'Enter') {
+                if (itens.length > 0 && currentIndex >= 0) {
+                    e.preventDefault();
+                    itens[currentIndex].click();
+                    currentIndex = -1;
+                } else if (input.value.trim().length > 0) {
+                    e.preventDefault();
+                    window.adicionarMunicipio(objetivo);
+                }
+            } else {
+                currentIndex = -1;
+            }
+        });
+
+        input.addEventListener('input', function() {
+            currentIndex = -1;
+        });
+    });
 });
+
+

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Planodeferias;
+use App\Models\PlanodeferiasMudanca;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -19,6 +20,12 @@ class PlanodeferiasController extends Controller
     public function getplanodeferias(Request $request){
         $dados = Planodeferias::with(['militar.postoGraduacao'])->get();
 
+        // Garante que todos os registros tenham o campo boletim (mesmo que null)
+        $dados = $dados->map(function($item) {
+            $item->boletim = $item->boletim ?? '';
+            return $item;
+        });
+
         if ($request->wantsJson()) {
             return response()->json(["data" => $dados]);
         }
@@ -28,7 +35,7 @@ class PlanodeferiasController extends Controller
 
     public function show(Request $request){
         try{
-            $plano = Planodeferias::findOrFail($request->id);
+            $plano = Planodeferias::with('mudancas')->findOrFail($request->id);
             return response()->json($plano, 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro interno do servidor.' . $e->getMessage()], 500);
@@ -50,34 +57,60 @@ class PlanodeferiasController extends Controller
     }
 
     public function store(Request $request){
+        $id = $request->input('id');
+        $qtdparcelas = $request->input('qtdparcelas');
 
-        $id = $request->input('id'); // Se ID for enviado, atualizar
-        
         $rules = [
             'qtdparcelas' => 'required',
-            'p1inicio' => 'required',
-            'p1fim' => 'required',
-            'p2inicio' => 'nullable',
-            'p2fim' => 'nullable',
-            'p3inicio' => 'nullable',
-            'p3fim' => 'nullable',
-            'militar_id' => 'nullable',
-            'anoreferencia' => 'nullable',
+            'militar_id' => 'required',
+            'anoreferencia' => 'required',
+            'boletim' => 'nullable|string|max:100',
             'status' => 'nullable',
         ];
+
+        // Regras dinâmicas para períodos
+        if ($qtdparcelas >= 1) {
+            $rules['p1inicio'] = 'required|date';
+            $rules['p1fim'] = 'required|date';
+        }
+        if ($qtdparcelas >= 2) {
+            $rules['p2inicio'] = 'required|date';
+            $rules['p2fim'] = 'required|date';
+        }
+        if ($qtdparcelas == 3) {
+            $rules['p3inicio'] = 'required|date';
+            $rules['p3fim'] = 'required|date';
+        }
 
         try {
             $validated = $request->validate($rules);
             $validated['status'] = $validated['status'] ?? 1;
-            // dd($validated);
+
+            // Salva o plano normalmente
             if ($id) {
                 $plano = Planodeferias::findOrFail($id);
                 $plano->update($validated);
-                return response()->json(['message' => 'Plano atualizado com sucesso!', 'plano' => $plano], 200);
             } else {
                 $plano = Planodeferias::create($validated);
-                return response()->json(['message' => 'Plano cadastrado com sucesso!', 'plano' => $plano], 201);
             }
+
+            // Salva as mudanças (DIEx e PDF)
+            if ($request->has('diex_alteracao')) {
+                foreach ($request->diex_alteracao as $idx => $diex) {
+                    $pdf = $request->file('pdf_alteracao')[$idx] ?? null;
+                    $pdfPath = null;
+                    if ($pdf) {
+                        $pdfPath = $pdf->store('mudancas_pdf', 'public');
+                    }
+                    PlanodeferiasMudanca::create([
+                        'planodeferias_id' => $plano->id,
+                        'diex' => $diex,
+                        'pdf_path' => $pdfPath,
+                    ]);
+                }
+            }
+
+            return response()->json(['message' => $id ? 'Plano atualizado com sucesso!' : 'Plano cadastrado com sucesso!', 'plano' => $plano], $id ? 200 : 201);
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (ModelNotFoundException $e) {
