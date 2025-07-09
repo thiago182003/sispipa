@@ -9,50 +9,56 @@ class ItinerarioController extends Controller
 {
     public function index()
     {
-        $itinerarios = Itinerario::orderBy('created_at', 'desc')->get();
-        $municipios = Municipio::orderBy('nome')->get()->pluck('nome')->toArray();
+        $itinerarios = Itinerario::orderBy('numero')->get();
+        $municipios = Municipio::orderBy('nome')->pluck('nome')->toArray();
+        
         return view('operacional.missoes.itinerarios', compact('itinerarios', 'municipios'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'municipio' => 'required|string|max:255'
+            'municipios' => 'required|array|min:2',
+            'municipios.*' => 'required|string|exists:municipios,nome'
         ]);
 
         Itinerario::create([
-            'municipio' => $request->municipio,
+            'municipios' => $request->municipios
         ]);
 
-        return redirect()->route('operacional.missoes.itinerarios.index')->with('success', 'Itinerário criado com sucesso!');
+        return redirect()->route('operacional.itinerarios.index')
+            ->with('success', 'Itinerário criado com sucesso!');
     }
 
     public function update(Request $request, Itinerario $itinerario)
     {
         $request->validate([
-            'municipio' => 'required|string|max:255'
+            'municipios' => 'required|array|min:2',
+            'municipios.*' => 'required|string|exists:municipios,nome'
         ]);
 
         $itinerario->update([
-            'municipio' => $request->municipio,
+            'municipios' => $request->municipios
         ]);
 
-        return redirect()->route('operacional.missoes.itinerarios.index')->with('success', 'Itinerário atualizado com sucesso!');
+        return redirect()->route('operacional.itinerarios.index')
+            ->with('success', 'Itinerário atualizado com sucesso!');
     }
 
     public function destroy(Itinerario $itinerario)
     {
         $itinerario->delete();
-        return redirect()->route('operacional.missoes.itinerarios.index')->with('success', 'Itinerário excluído com sucesso!');
+        return redirect()->route('operacional.itinerarios.index')
+            ->with('success', 'Itinerário excluído com sucesso!');
     }
 
     public function buscarMunicipios(Request $request)
     {
         $term = $request->input('term');
         $municipios = Municipio::where('nome', 'like', '%'.$term.'%')
-                              ->orderBy('nome')
-                              ->pluck('nome')
-                              ->toArray();
+            ->orderBy('nome')
+            ->pluck('nome')
+            ->toArray();
         
         return response()->json($municipios);
     }

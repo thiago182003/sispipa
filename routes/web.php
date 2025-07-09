@@ -142,26 +142,38 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('/operacional')->name('operacional.')->group(function () {
-        Route::get('missoes', [MissaoController::class, 'index'])->name('missoes.index');
-        Route::get('missoes/criar', [MissaoController::class, 'create'])->name('missoes.create');
-        Route::post('missoes', [MissaoController::class, 'store'])->name('missoes.store');
-        Route::post('missoes/{missao}/status', [MissaoController::class, 'atualizarStatus'])->name('operacional.missoes.status');
+        // Rotas de Missões
+        Route::prefix('missoes')->group(function () {
+            Route::get('/', [MissaoController::class, 'index'])->name('missoes.index');
+            Route::get('/criar', [MissaoController::class, 'create'])->name('missoes.create');
+            Route::post('/', [MissaoController::class, 'store'])->name('missoes.store');
+            Route::post('/{missao}/status', [MissaoController::class, 'atualizarStatus'])->name('missoes.status');
+            Route::get('/{missao}/editar', [MissaoController::class, 'edit'])->name('missoes.edit');
+            Route::put('/{missao}', [MissaoController::class, 'update'])->name('missoes.update');
+            Route::delete('/{missao}', [MissaoController::class, 'destroy'])->name('missoes.destroy');
+        });
+
+        // Rotas de Municípios
         Route::get('/municipios', [MunicipioController::class, 'index'])->name('municipios');
         Route::post('/municipios/importar', [MunicipioController::class, 'importar'])->name('municipios.importar');
+        Route::get('/municipios/getall', [MunicipioController::class, 'getall'])->name('municipios.getall');
+
+        // Rotas de Tipo de Missão
         Route::get('/tipomissao', [TipoMissaoController::class, 'index'])->name('tipomissao');
         Route::get('/tipomissao/show', [TipoMissaoController::class, 'show'])->name('tipomissaoall');
         Route::get('/tipomissoes/getall', [TipoMissaoController::class, 'getAll'])->name('tipomissoes.getall');
         Route::post('/tipomissoes/store', [TipoMissaoController::class, 'store'])->name('tipomissoes.store');
-         Route::get('missoes/{missao}/editar', [MissaoController::class, 'edit'])->name('missoes.edit'); // NOVA ROTA
-        Route::put('missoes/{missao}', [MissaoController::class, 'update'])->name('missoes.update');   // NOVA ROTA
-        Route::delete('missoes/{missao}', [MissaoController::class, 'destroy'])->name('missoes.destroy'); // NOVA ROTA
-        Route::get('itinerarios', [ItinerarioController::class, 'index'])->name('itinerarios.index');
-        Route::post('itinerarios', [ItinerarioController::class, 'store'])->name('itinerarios.store');
-        Route::put('itinerarios/{itinerario}', [ItinerarioController::class, 'update'])->name('itinerarios.update');
-        Route::delete('itinerarios/{itinerario}', [ItinerarioController::class, 'destroy'])->name('itinerarios.destroy');
         Route::post('/tipomissao/delete', [TipoMissaoController::class, 'destroy'])->name('tipomissoes.delete');
-        Route::get('/municipios/getall', [MunicipioController::class, 'getall'])->name('municipios.getall');
-        Route::get('/itinerarios/buscar-municipios', [ItinerarioController::class, 'buscarMunicipios'])->name('itinerarios.buscar-municipios');
+
+        // Rotas de Itinerários (corrigidas e organizadas)
+        Route::prefix('itinerarios')->group(function () {
+            Route::get('/', [ItinerarioController::class, 'index'])->name('itinerarios.index');
+            Route::post('/', [ItinerarioController::class, 'store'])->name('itinerarios.store');
+            Route::put('/{itinerario}', [ItinerarioController::class, 'update'])->name('itinerarios.update');
+            Route::delete('/{itinerario}', [ItinerarioController::class, 'destroy'])->name('itinerarios.destroy');
+            Route::get('/buscar-municipios', [ItinerarioController::class, 'buscarMunicipios'])
+                ->name('itinerarios.buscar-municipios');
+        });
     });
 
     Route::prefix('/importacoes')->name('importacoes.')->group(function () {

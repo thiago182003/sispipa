@@ -13,7 +13,8 @@ return new class extends Migration
 {
     Schema::create('itinerarios', function (Blueprint $table) {
         $table->id();
-        $table->string('municipio');
+        $table->integer('numero')->unique()->comment('Número sequencial do itinerário');
+        $table->json('municipios')->comment('Array de municípios do itinerário');
         $table->timestamps();
     });
 }
@@ -26,3 +27,5 @@ return new class extends Migration
         Schema::dropIfExists('itinerarios');
     }
 };
+
+
