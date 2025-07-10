@@ -53,83 +53,143 @@ class MissaoController extends Controller
     }
 
     public function create()
-    {
-        $militares = \App\Models\User::with(['postoGraduacao', 'omServico'])->get();
-        $municipios = \App\Models\Municipio::orderBy('nome')->get();
-        $postos = \App\Models\PostoGraduacoes::orderBy('nome')->get();
-        $oms = \App\Models\Oms::orderBy('nome')->get();
-        $objetivos = \App\Models\Objetivo::orderBy('nome')->get(); // Adicione esta linha
-        return view('operacional.missoes.criar', compact('militares', 'municipios', 'postos', 'oms', 'objetivos'));
-    }
+{
+    $militares = \App\Models\User::with(['postoGraduacao', 'omServico'])->get();
+    $municipios = \App\Models\Municipio::orderBy('nome')->get();
+    $postos = \App\Models\PostoGraduacoes::orderBy('nome')->get();
+    $oms = \App\Models\Oms::orderBy('nome')->get();
+    $objetivos = \App\Models\Objetivo::orderBy('nome')->get();
+    $itinerarios = \App\Models\Itinerario::orderBy('numero')->get(); // Adicionado
+    
+    return view('operacional.missoes.criar', compact('militares', 'municipios', 'postos', 'oms', 'objetivos', 'itinerarios'));
+}
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'data_inicio' => 'required|date',
-            'data_fim' => 'required|date|after_or_equal:data_inicio',
-            'objetivos' => 'required|array|min:1',
-            'militares' => 'required|array|min:2|max:4',
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'data_inicio' => 'required|date',
+        'data_fim' => 'required|date|after_or_equal:data_inicio',
+        'objetivos' => 'required|array|min:1',
+        'militares' => 'required|array|min:2|max:4',
+    ]);
 
-        $objetivosSelecionados = $request->input('objetivos', []);
-        $municipiosPorObjetivo = $request->input('municipios_por_objetivo', []);
+    $objetivosSelecionados = $request->input('objetivos', []);
+    $municipiosPorObjetivo = $request->input('municipios_por_objetivo', []);
+    $itinerariosPorObjetivo = $request->input('itinerarios_por_objetivo', []);
+    $usarItinerarios = $request->has('usar_itinerarios');
 
-        $objetivos = [];
-        foreach ($objetivosSelecionados as $objetivoId) {
-            $municipios = isset($municipiosPorObjetivo[$objetivoId]) ? json_decode($municipiosPorObjetivo[$objetivoId], true) : [];
-            $objetivoNome = \App\Models\Objetivo::find($objetivoId)->nome ?? $objetivoId;
-            $objetivos[$objetivoNome] = $municipios;
+    $objetivos = [];
+    foreach ($objetivosSelecionados as $objetivoId) {
+        $objetivoNome = \App\Models\Objetivo::find($objetivoId)->nome ?? $objetivoId;
+        
+        if ($usarItinerarios) {
+            // Obter municípios dos itinerários selecionados
+            $itinerariosIds = $itinerariosPorObjetivo[$objetivoId] ?? [];
+            $municipios = [];
+            
+            foreach ($itinerariosIds as $itinerarioId) {
+                $itinerario = \App\Models\Itinerario::find($itinerarioId);
+                if ($itinerario) {
+                    $municipios = array_merge($municipios, $itinerario->municipios);
+                }
+            }
+            
+            // Remover duplicados
+            $municipios = array_unique($municipios);
+        } else {
+            // Usar municípios inseridos manualmente
+            $municipios = isset($municipiosPorObjetivo[$objetivoId]) ? 
+                json_decode($municipiosPorObjetivo[$objetivoId], true) : [];
         }
-
-        Missao::create([
-            'data_inicio' => $request->data_inicio,
-            'data_fim' => $request->data_fim,
-            'objetivos' => $objetivos, // Agora é um array de IDs
-            'militares' => $request->militares,
-            'status' => null,
-            'observacao' => null,
-        ]);
-
-        return redirect()->route('operacional.missoes.index')->with('success', 'Missão criada com sucesso!');
+        
+        $objetivos[$objetivoNome] = $municipios;
     }
 
-    public function edit(Missao $missao)
-    {
-        $militares = \App\Models\User::with(['postoGraduacao', 'omServico'])->get();
-        $municipios = \App\Models\Municipio::orderBy('nome')->get();
-        $postos = \App\Models\PostoGraduacoes::orderBy('nome')->get();
-        $oms = \App\Models\Oms::orderBy('nome')->get();
-        return view('operacional.missoes.editar', compact('missao', 'militares', 'municipios', 'postos', 'oms'));
-    }
+    Missao::create([
+        'data_inicio' => $request->data_inicio,
+        'data_fim' => $request->data_fim,
+        'objetivos' => $objetivos,
+        'militares' => $request->militares,
+        'status' => null,
+        'observacao' => null,
+        'usar_itinerarios' => $usarItinerarios,
+    ]);
+
+    return redirect()->route('operacional.missoes.index')->with('success', 'Missão criada com sucesso!');
+}
+
+public function edit(Missao $missao)
+{
+    $militares = \App\Models\User::with(['postoGraduacao', 'omServico'])->get();
+    $municipios = \App\Models\Municipio::orderBy('nome')->get();
+    $postos = \App\Models\PostoGraduacoes::orderBy('nome')->get();
+    $oms = \App\Models\Oms::orderBy('nome')->get();
+    $objetivos = \App\Models\Objetivo::orderBy('nome')->get();
+    $itinerarios = \App\Models\Itinerario::orderBy('numero')->get();
+    
+    return view('operacional.missoes.editar', compact(
+        'missao', 
+        'militares', 
+        'municipios', 
+        'postos', 
+        'oms',
+        'objetivos',
+        'itinerarios'
+    ));
+}
 
     public function update(Request $request, Missao $missao)
-    {
-        $request->validate([
-            'data_inicio' => 'required|date',
-            'data_fim' => 'required|date|after_or_equal:data_inicio',
-            'objetivos' => 'required|array',
-            'militares' => 'required|array|min:2|max:4',
-        ]);
+{
+    $request->validate([
+        'data_inicio' => 'required|date',
+        'data_fim' => 'required|date|after_or_equal:data_inicio',
+        'objetivos' => 'required|array',
+        'militares' => 'required|array|min:2|max:4',
+    ]);
 
-        $objetivosSelecionados = $request->input('objetivos', []);
-        $municipiosPorObjetivo = $request->input('municipios_por_objetivo', []);
+    $objetivosSelecionados = $request->input('objetivos', []);
+    $municipiosPorObjetivo = $request->input('municipios_por_objetivo', []);
+    $itinerariosPorObjetivo = $request->input('itinerarios_por_objetivo', []);
+    $usarItinerarios = $request->has('usar_itinerarios');
 
-        $objetivos = [];
-        foreach ($objetivosSelecionados as $objetivoId) {
-            $municipios = isset($municipiosPorObjetivo[$objetivoId]) ? json_decode($municipiosPorObjetivo[$objetivoId], true) : [];
-            $objetivoNome = \App\Models\Objetivo::find($objetivoId)->nome ?? $objetivoId;
-            $objetivos[$objetivoNome] = $municipios;
+    $objetivos = [];
+    foreach ($objetivosSelecionados as $objetivoId) {
+        $objetivoNome = \App\Models\Objetivo::find($objetivoId)->nome ?? $objetivoId;
+        
+        if ($usarItinerarios) {
+            // Obter municípios dos itinerários selecionados
+            $itinerariosIds = $itinerariosPorObjetivo[$objetivoId] ?? [];
+            $municipios = [];
+            
+            foreach ($itinerariosIds as $itinerarioId) {
+                $itinerario = \App\Models\Itinerario::find($itinerarioId);
+                if ($itinerario) {
+                    $municipios = array_merge($municipios, $itinerario->municipios);
+                }
+            }
+            
+            // Remover duplicados
+            $municipios = array_unique($municipios);
+        } else {
+            // Usar municípios inseridos manualmente
+            $municipios = isset($municipiosPorObjetivo[$objetivoId]) ? 
+                json_decode($municipiosPorObjetivo[$objetivoId], true) : [];
         }
-
-        $missao->update([
-            'data_inicio' => $request->data_inicio,
-            'data_fim' => $request->data_fim,
-            'objetivos' => $objetivos,
-            'militares' => $request->militares,
-        ]);
-
-        return redirect()->route('operacional.missoes.index')->with('success', 'Missão atualizada com sucesso!');
+        
+        $objetivos[$objetivoNome] = $municipios;
     }
+
+    $missao->update([
+        'data_inicio' => $request->data_inicio,
+        'data_fim' => $request->data_fim,
+        'objetivos' => $objetivos,
+        'militares' => $request->militares,
+        'usar_itinerarios' => $usarItinerarios,
+        'itinerarios_por_objetivo' => $usarItinerarios ? $itinerariosPorObjetivo : null,
+    ]);
+
+    return redirect()->route('operacional.missoes.index')->with('success', 'Missão atualizada com sucesso!');
+}
 
     public function atualizarStatus(Request $request, Missao $missao)
     {
